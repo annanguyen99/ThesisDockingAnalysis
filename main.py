@@ -1,8 +1,7 @@
 import math
 from receptor import Receptor
 from results import Results
-
-
+from itertools import permutations
 
 def find_attributes(receptor, results):
     """
@@ -31,7 +30,7 @@ def find_attributes(receptor, results):
                             (l_atom.z_coord - atom.z_coord) ** 2)
                         if 1.4< distance < 5.6:
                             unique_pairs.append((atom, l_atom, distance))
-                            attribute.append(("positive ion - negative partial charge", distance, atom, l_atom))
+                            attribute.append(("pos ion - neg par", distance, atom, l_atom))
 
         if res_name in ("ASP", " GLU"):
             # TODO check the atom partial charge threshold
@@ -42,7 +41,7 @@ def find_attributes(receptor, results):
                         (l_atom.z_coord - atom.z_coord) ** 2)
                     if 1.4< distance < 5.6:
                         unique_pairs.append((atom, l_atom, distance))
-                        attribute.append(("negative ion - positive partial charge", distance, atom, l_atom))
+                        attribute.append(("neg ion - pos par", distance, atom, l_atom))
 
         # 2. Identify hydrogen bonding
         # if the atom is hydrogen bond acceptor, find hydrogen bond donor
@@ -56,7 +55,7 @@ def find_attributes(receptor, results):
                     if 2.1< distance < 3.9:
                         new_atribute = (atom, l_atom, distance)
                         if new_atribute not in unique_pairs:
-                            attribute.append(("Hydrogen bonding", distance, atom, l_atom))
+                            attribute.append(("hydrogen bonding", distance, atom, l_atom))
         # if the atom is hydrogen bond donor, find hydrogen bond acceptor
         if atom_type in ("HD"):
             for l_atom in lig_atoms:
@@ -67,7 +66,7 @@ def find_attributes(receptor, results):
                     if 2.1< distance < 3.9:
                         new_atribute = (atom, l_atom, distance)
                         if new_atribute not in unique_pairs:
-                            attribute.append(("Hydrogen bonding", distance, atom, l_atom))
+                            attribute.append(("hydrogen bonding", distance, atom, l_atom))
 
         # 3. Identify dipole - dipole interaction
         # TODO should i include all the atom in the receptor (also the backbone interaction of other amino acid)?
@@ -81,7 +80,7 @@ def find_attributes(receptor, results):
                     if 1.4 < distance < 5.6:
                         new_atribute = (atom, l_atom, distance)
                         if new_atribute not in unique_pairs:
-                            attribute.append(("negative partial charge - positive partial charge", distance, atom, l_atom))
+                            attribute.append(("neg par - pos par", distance, atom, l_atom))
 
         # 4. Identify hydrophobic interaction
         if res_name in ("ALA", "VAL", "ILE", "LEU", "PHE", "MET", "TYR", "TRP"):
@@ -93,7 +92,7 @@ def find_attributes(receptor, results):
                     if 1.0 < distance < 5.9:
                         new_atribute = (atom, l_atom, distance)
                         if new_atribute not in unique_pairs:
-                            attribute.append(("Hydrophobic interaction", distance, atom, l_atom))
+                            attribute.append(("ldf", distance, atom, l_atom))
     return attribute
 
 def get_unique_attributes(attribute):
@@ -104,7 +103,8 @@ def get_unique_attributes(attribute):
     """
     unique_pairs = {}
     for a in attribute:
-        new_pair = a[2].residue_name, a[2].atom_name,  a[3].atom_name, a[3].serial_number
+        new_pair = a[2].residue_name + a[2].residue_sequence, a[2].atom_name,  a[3].atom_name, a[3].serial_number, a[0]
+        # print(new_pair)
         if new_pair not in unique_pairs.keys():
             unique_pairs.update({new_pair : a[1]})
         else:
@@ -114,19 +114,74 @@ def get_unique_attributes(attribute):
     return unique_pairs
 
 
+def generate_pharmacophore (unique_pairs, num_attrib):
+    """
+    generate pharmacophores based on number of attribute
+    """
+    pharmacophores = []
+    # Generate different combinations of pharmacophore from (unique_pairs)
+    # and each combination has num_attrib items.
+    perm = permutations(unique_pairs, num_attrib)
+    unique_comb = []
+    for i in list(perm):
+        residue_name = []
+        for j in i:
+            new_residue = (j[0])
+            # print(new_residue)
+            if new_residue not in residue_name:
+                residue_name.append(j[0])
+        if len(residue_name) == 3:
+            score = scoring_function(i)
+            interaction = {}
+            interaction.update({"bond": i})
+            interaction.update({"score": score})
+            pharmacophores.append(interaction)
+
+    pharmacophores.sort(key=getScore, reverse=True)
+    return pharmacophores
+
+def getScore (pharmacophore):
+    """
+    A function that return the score value
+    """
+    return pharmacophore["score"]
+
+def scoring_function(list):
+    """
+    Return the score for the pharmacophore
+    """
+    score = 0;
+    for interaction in list:
+        # distance-dependent function
+        bonding_interaction = interaction[4]
+        if bonding_interaction in ("pos ion - neg par", "neg ion - pos par"):
+           score += 4
+        elif bonding_interaction in ("hydrogen bonding"):
+            score += 3
+        elif bonding_interaction in ("neg par - pos par"):
+            score += 2
+        elif bonding_interaction in ("ldf"):
+            score += 1
+    return score
+
+
 if __name__ == '__main__':
     center = [51.512, 22.11, 104.839]
     size = [30, 30, 30]
-    rec_path = "/Users/mythanhthaonguyen/PycharmProjects/thesis_01/data/7jtl_mol.pdbqt"
+    rec_path = "/Users/mythanhthaonguyen/PycharmProjects/Thesis_DockingAnalysis/data/7jtl_mol.pdbqt"
     receptor = Receptor(rec_path, center, size)
-    results_path = "/Users/mythanhthaonguyen/PycharmProjects/thesis_01/data/ZINC857.pdbqt"
+    results_path = "/Users/mythanhthaonguyen/PycharmProjects/Thesis_DockingAnalysis/data/ZINC857.pdbqt"
     docking_result = Results(results_path, center, size)
     attributes = find_attributes(receptor, docking_result)
-    for a in attributes:
-        print(a[0] + " " + str(a[1]) + " between: " + a[2].residue_name + " and " + a[3].atom_name + " " + a[3].serial_number)
+    # for a in attributes:
+        # print(a[0] + " " + str(a[1]) + " between: " + a[2].residue_name + " and " + a[3].atom_name + " " + a[3].serial_number)
+        # print(a)
     dict = get_unique_attributes(attributes)
-    for pair in dict:
-        print(pair)
-        print(dict.get(pair))
+    # # for pair in dict:
+    # #     print(pair)
+    # #     print(dict.get(pair))
+    top_pharma = generate_pharmacophore(dict, 3)
+    for i in range(10):
+        print(top_pharma[i])
 
 
