@@ -1,5 +1,6 @@
 import math
 import pathlib
+import os
 from receptor import Receptor
 from results import Results
 from itertools import permutations
@@ -208,7 +209,7 @@ def scoring_function(list):
 
 
 if __name__ == '__main__':
-    project_root = pathlib.Path(__file__).parent.parent
+    project_root = pathlib.Path(os.path.dirname(os.path.abspath('.')))
     receptor_path = project_root / 'data' / '7jtl.pdbqt'
     results_path = project_root / 'data' / 'ZINC596.pdbqt'
     print()

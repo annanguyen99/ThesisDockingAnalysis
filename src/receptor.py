@@ -1,4 +1,5 @@
 import pathlib
+import os
 from atom import Atom
 
 class Receptor:
@@ -39,7 +40,7 @@ if __name__ == "__main__":
     # Quick testing
 
     # Project path
-    project_root = pathlib.Path(__file__).parent.parent
+    project_root = pathlib.Path(os.path.dirname(os.path.abspath('.')))
     center = [51.512, 22.11, 104.839]
     size = [30, 30, 30]
     receptor_path = project_root / 'data' / '7jtl.pdbqt'
