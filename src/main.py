@@ -208,7 +208,7 @@ def scoring_function(list):
 
 
 if __name__ == '__main__':
-    project_root = pathlib.Path(__file__).parent
+    project_root = pathlib.Path(__file__).parent.parent
     receptor_path = project_root / 'data' / '7jtl.pdbqt'
     results_path = project_root / 'data' / 'ZINC596.pdbqt'
     print()

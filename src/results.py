@@ -25,11 +25,11 @@ if __name__ == "__main__":
     center = [51.512, 22.11, 104.839]
     size = [34, 34, 34]
 
-    project_root = pathlib.Path(__file__).parent
+    project_root = pathlib.Path(__file__).parent.parent
     results_path = project_root / 'data' / 'ZINC596.pdbqt'
     docking_result = Results(results_path, center, size)
 
     # Print out all the atoms
-    # for atom in docking_result.atoms:
-    #     print(atom.atom_name + ": " + str(atom.serial_number))
+    for atom in docking_result.atoms:
+        print(atom.atom_name + ": " + str(atom.serial_number))
 
