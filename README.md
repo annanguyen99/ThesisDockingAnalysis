@@ -14,7 +14,7 @@ This is a tool for generating potential pharmacophores from AutoDock Vina result
   python3 main.py
   ~~~
 ## Usage
-This project currently ongoing. Right now, running the main.py will produce 10 top scored pharmacophore for receptor 7JTL.pbdqt and the pharmacophore attributes is extracted from AutoDock Vina output of compound ZINC486062596 (https://zinc.docking.org/substances/ZINC000486062596/). 
+This project currently ongoing. Right now, running the main.py will produce 10 top scored pharmacophore for receptor 7JTL.pbdqt and the pharmacophore attributes is extracted from AutoDock Vina output of compound ZINC486062596 (https://zinc.docking.org/substances/ZINC000486062596/).
 
 ## Roadmap
 - Add input for main program
