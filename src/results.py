@@ -14,7 +14,7 @@ class Results:
                 if line[:6] in ("MODEL "):
                     self.num_pose += 1
                 if line[:6] in ("ATOM  ", "HETATM", "ATOM"):
-                    new_atom = Atom(line)
+                    new_atom = Atom(line, self.num_pose)
                     # if (float(new_atom.x_coord) < (center[0] + size[0]) and float(new_atom.x_coord) > (center[0] - size[0]))and \
                     #         (float(new_atom.y_coord) < (center[1] + size[1]) and float(new_atom.x_coord) > (center[1] - size[1])) and \
                     #         (float(new_atom.z_coord) < (center[2] + size[2]) and float(new_atom.z_coord) > (center[2] - size[2])):
@@ -32,5 +32,6 @@ if __name__ == "__main__":
 
     # Print out all the atoms
     for atom in docking_result.atoms:
+        print("MODEL: " + str(atom.model))
         print(atom.atom_name + ": " + str(atom.serial_number))
 

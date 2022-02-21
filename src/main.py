@@ -4,6 +4,8 @@ import os
 from receptor import Receptor
 from results import Results
 from itertools import permutations
+import xlwt
+from xlwt import Workbook
 
 def find_attributes(receptor, results):
     """
@@ -120,8 +122,8 @@ def get_unique_attributes(attribute):
         # eg. LYS47
         residue_id = a[2].residue_name + a[2].residue_sequence
         # New pair includes: the receptor's residue, the receptor's atom name,
-        # the ligand's atom name, and its serial number, and the interaction's name
-        new_pair = residue_id, a[2].atom_name,  a[3].atom_name, a[3].serial_number, a[0]
+        # the ligand's atom name, and its serial number, and the interaction's name, ligand's model
+        new_pair = residue_id, a[2].atom_name,  a[3].atom_name, a[3].serial_number, a[0], a[3].model
 
         # Check to see if the interaction is already in the unique_pairs
         if new_pair in unique_pairs.keys():
@@ -212,7 +214,7 @@ if __name__ == '__main__':
 
     project_root = pathlib.Path(os.path.abspath('.'))
     receptor_path = project_root / 'data' / '7jtl.pdbqt'
-    results_path = project_root / 'data' / 'ZINC596.pdbqt'
+    results_path = project_root / 'data' / 'Novobiocin.pdbqt'
     print()
     print("The receptor path: " + str(receptor_path))
     print("The result path: " + str(results_path))
@@ -224,24 +226,77 @@ if __name__ == '__main__':
     # Create the receptor object
     receptor = Receptor(receptor_path, center, size)
     # Create an results object based on the result file
+
     docking_result = Results(results_path, center, size)
     attributes = find_attributes(receptor, docking_result)
 
     # Get all the unique interactions
     dict = get_unique_attributes(attributes)
 
+    wb = Workbook()
+    sheet1 = wb.add_sheet('All interactions')
+
+    # Write to the excel file, (row, column)
+    sheet1.write(0, 0, "IMF")
+    sheet1.write(0, 1, "Receptor's side chain")
+    sheet1.write(0, 2, "Receptor's atom")
+    sheet1.write(0, 3, "Ligand's atom")
+    sheet1.write(0, 4, "Ligand's atom serial number")
+    sheet1.write(0, 5, "Pose ID")
+
+    counter = 1
+    for attribute in dict:
+        # print("Atom " + attribute[1] + " of amino acid side chain " + attribute[0] + " interacts with atom " +
+        #       attribute[2] + " of the ligand - " + attribute[4])
+        sheet1.write(counter, 0, attribute[4])
+        sheet1.write(counter, 1, attribute[0],  xlwt.easyxf("align: horiz center"))
+        sheet1.write(counter, 2, attribute[1], xlwt.easyxf("align: horiz center"))
+        sheet1.write(counter, 3, attribute[2], xlwt.easyxf("align: horiz center"))
+        sheet1.write(counter, 4, attribute[3], xlwt.easyxf("align: horiz center"))
+        sheet1.write(counter, 5, attribute[5], xlwt.easyxf("align: horiz center"))
+
+        counter += 1
+    wb.save("Interactions_output.xls")
     # Generate the pharmacophores
     num_attribute = 3
     top_pharma = generate_pharmacophore(dict, num_attribute)
     print()
+    sheet2 = wb.add_sheet('Pharmacophores')
     print("This is a list of top 10 scored potential pharmacophores with " + str(num_attribute) + " attribute per pharmacophore")
+
     # Print out top 10 scored pharmacophores
+    # Write to the excel file, (row, column)
+    sheet2.write(0, 0, "Pharmacophore ID")
+    sheet2.write(0, 1, "Pharmacophore's score")
+    sheet2.write(0, 2, "Receptor's side chain")
+    sheet2.write(0, 3, "Receptor's atom")
+    sheet2.write(0, 4, "Ligand's atom")
+    sheet2.write(0, 5, "Ligand's atom serial number")
+    sheet2.write(0, 6, "Pose ID")
+    sheet2.write(0, 7, "Interaction")
+
+    line_counter = 1
     for i in range(10):
+        sheet2.write(line_counter, 0, i+1, xlwt.easyxf("align: horiz center"))
         pharma = top_pharma[i]
         print()
         print("Pharmacophore " + str(i + 1) + " with score = " + str(pharma.get("score")) )
         interactions = pharma.get("bond")
+        sheet2.write(line_counter, 1, pharma.get("score"), xlwt.easyxf("align: horiz center"))
         for j in range(len(interactions)):
             interaction = interactions[j]
             print("Receptor's atom " + interaction[1] + " of residue " + interaction[0] +
-                  " and ligand's atom " + interaction[2] +interaction[3])
+                  " and ligand's atom " + interaction[2] + " " + interaction[3])
+            sheet2.write(line_counter, 2, interaction[0], xlwt.easyxf("align: horiz center"))
+            sheet2.write(line_counter, 3, interaction[1], xlwt.easyxf("align: horiz center"))
+            sheet2.write(line_counter, 4, interaction[2], xlwt.easyxf("align: horiz center"))
+            sheet2.write(line_counter, 5, interaction[3], xlwt.easyxf("align: horiz center"))
+            sheet2.write(line_counter, 6, interaction[5], xlwt.easyxf("align: horiz center"))
+            sheet2.write(line_counter, 7, interaction[4], xlwt.easyxf("align: horiz center"))
+            line_counter += 1
+
+    print()
+    output = "Pharmacophores.xls"
+    print("DONE! Find file: " + output)
+
+    wb.save(output)
