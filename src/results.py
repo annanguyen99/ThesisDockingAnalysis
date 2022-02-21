@@ -26,7 +26,7 @@ if __name__ == "__main__":
     center = [51.512, 22.11, 104.839]
     size = [34, 34, 34]
 
-    project_root = pathlib.Path(os.path.dirname(os.path.abspath('.')))
+    project_root = pathlib.Path(os.path.abspath('.'))
     results_path = project_root / 'data' / 'ZINC596.pdbqt'
     docking_result = Results(results_path, center, size)
 
