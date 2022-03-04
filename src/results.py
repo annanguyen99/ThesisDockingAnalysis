@@ -27,7 +27,7 @@ if __name__ == "__main__":
     size = [34, 34, 34]
 
     project_root = pathlib.Path(os.path.abspath('.'))
-    results_path = project_root / 'data' / 'ZINC596.pdbqt'
+    results_path = project_root / 'data' / 'Novobiocin.pdbqt'
     docking_result = Results(results_path, center, size)
 
     # Print out all the atoms
