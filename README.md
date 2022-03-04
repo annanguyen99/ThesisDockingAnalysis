@@ -7,6 +7,8 @@ This is a tool for generating potential pharmacophores from AutoDock Vina result
   * import math
   * import pathlib
   * from itertools import permutations 
+  * import xlwt
+  * from xlwt import Workbook
 * Steps to run the code
   * cd to src
   * Run this code 
